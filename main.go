@@ -42,7 +42,7 @@ func printStruct(data []struct{ word, value string }) {
 	}
 }
 
-func build(targetGoFile string, buildDir string, version string, goos string, goarch string, doZip string) (bool, string) { // bool: status(true=success, false=error), string: dirPath for cancel
+func build(targetGoFile string, buildDir string, nameFormat string, version string, goos string, goarch string, doZip string) (bool, string) { // bool: status(true=success, false=error), string: dirPath for cancel
 	currentDir, err := os.Getwd()
 	if err != nil {
 		// Handle the error
@@ -52,10 +52,23 @@ func build(targetGoFile string, buildDir string, version string, goos string, go
 	name := path.Base(currentDir)
 
 	var buildDirName string
-	if version == "" {
-		buildDirName = fmt.Sprintf("%s_%s_%s", name, goos, goarch)
+	if nameFormat == "1" {
+		buildDirName = goos
+	} else if nameFormat == "2" {
+		switch goos {
+		case "windows":
+			buildDirName = "win"
+		case "darwin":
+			buildDirName = "mac"
+		default:
+			buildDirName = goos
+		}
 	} else {
-		buildDirName = fmt.Sprintf("%s_%s_%s_%s", name, version, goos, goarch)
+		if version == "" {
+			buildDirName = fmt.Sprintf("%s_%s_%s", name, goos, goarch)
+		} else {
+			buildDirName = fmt.Sprintf("%s_%s_%s_%s", name, version, goos, goarch)
+		}
 	}
 
 	output := fmt.Sprintf("%s/%s", buildDir, buildDirName)
@@ -265,9 +278,15 @@ func main() {
 		goarch = args[4]
 	}
 
+	var nameFormat string
+	fmt.Print("choose directory name format\n0(default) = {name}_{version}_{goos}_{goarch}\n1 = {goos}\n2 = (windows=win, darwin=mac, others=goos)\n\n(optional): ")
+	fmt.Scanln(&nameFormat)
+
 	var version string
-	fmt.Print("version (optional): ")
-	fmt.Scanln(&version)
+	if nameFormat == "0" {
+		fmt.Print("version (optional): ")
+		fmt.Scanln(&version)
+	}
 
 	var buildDir string
 	fmt.Print("build directory name: (build) ")
@@ -286,7 +305,7 @@ func main() {
 	if quickstart_all == true {
 		goos = "windows"
 		goarch = "amd64"
-		status, dir := build(targetGoFile, buildDir, version, goos, goarch, doZip)
+		status, dir := build(targetGoFile, buildDir, nameFormat, version, goos, goarch, doZip)
 		if status == false {
 			os.Setenv("GOOS", originalGOOS)
 			os.Setenv("GOARCH", originalGOARCH)
@@ -295,7 +314,7 @@ func main() {
 		}
 		goos = "windows"
 		goarch = "386"
-		status, dir = build(targetGoFile, buildDir, version, goos, goarch, doZip)
+		status, dir = build(targetGoFile, buildDir, nameFormat, version, goos, goarch, doZip)
 		if status == false {
 			os.Setenv("GOOS", originalGOOS)
 			os.Setenv("GOARCH", originalGOARCH)
@@ -304,7 +323,7 @@ func main() {
 		}
 		goos = "darwin"
 		goarch = "arm64"
-		status, dir = build(targetGoFile, buildDir, version, goos, goarch, doZip)
+		status, dir = build(targetGoFile, buildDir, nameFormat, version, goos, goarch, doZip)
 		if status == false {
 			os.Setenv("GOOS", originalGOOS)
 			os.Setenv("GOARCH", originalGOARCH)
@@ -313,7 +332,7 @@ func main() {
 		}
 		goos = "linux"
 		goarch = "arm64"
-		status, dir = build(targetGoFile, buildDir, version, goos, goarch, doZip)
+		status, dir = build(targetGoFile, buildDir, nameFormat, version, goos, goarch, doZip)
 		if status == false {
 			os.Setenv("GOOS", originalGOOS)
 			os.Setenv("GOARCH", originalGOARCH)
@@ -321,7 +340,7 @@ func main() {
 			return
 		}
 	} else {
-		status, dir := build(targetGoFile, buildDir, version, goos, goarch, doZip)
+		status, dir := build(targetGoFile, buildDir, nameFormat, version, goos, goarch, doZip)
 		if status == false {
 			os.Setenv("GOOS", originalGOOS)
 			os.Setenv("GOARCH", originalGOARCH)
