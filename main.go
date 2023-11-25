@@ -93,7 +93,7 @@ func build(targetGoFile string, buildDir string, nameFormat string, version stri
 		outputPath = fmt.Sprintf("%s/%s%s", output, name, extension)
 		cmd = exec.Command("go", "build", "-o", outputPath, targetGoFile)
 	} else {
-		outputPath = fmt.Sprintf("%s/%s%s", output, targetGoFile, extension)
+		outputPath = fmt.Sprintf("%s", output)
 		cmd = exec.Command("go", "build", "-C", targetGoFile, "-o", outputPath)
 	}
 	fmt.Printf("\nexecutable output path is %s\n", outputPath)
