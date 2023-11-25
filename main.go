@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 func deleteDir(dirPath string) {
@@ -86,7 +87,16 @@ func build(targetGoFile string, buildDir string, nameFormat string, version stri
 	}
 	os.Setenv("GOOS", goos)
 	os.Setenv("GOARCH", goarch)
-	cmd := exec.Command("go", "build", "-o", fmt.Sprintf("%s/%s%s", output, name, extension), targetGoFile)
+	var cmd *exec.Cmd
+	var outputPath string
+	if strings.Contains(targetGoFile, ".go") {
+		outputPath = fmt.Sprintf("%s/%s%s", output, name, extension)
+		cmd = exec.Command("go", "build", "-o", outputPath, targetGoFile)
+	} else {
+		outputPath = fmt.Sprintf("%s/%s%s", output, targetGoFile, extension)
+		cmd = exec.Command("go", "build", "-o", outputPath, targetGoFile)
+	}
+	fmt.Printf("\nexecutable output path is %s\n", outputPath)
 	err = cmd.Run()
 	if err != nil {
 		fmt.Println("Error code2:", err)
@@ -283,7 +293,7 @@ func main() {
 	fmt.Scanln(&nameFormat)
 
 	var version string
-	if nameFormat == "0" {
+	if nameFormat == "" {
 		fmt.Print("version (optional): ")
 		fmt.Scanln(&version)
 	}
